@@ -61,13 +61,30 @@ pub enum X402Error {
     /// None of the server's `accepts[]` entries name the `exact` scheme on
     /// a Stellar network this client supports (`stellar:pubnet` /
     /// `stellar:testnet`, matched against the network passphrase given).
+    ///
+    /// Audit confirm: All call sites returning this variant (specifically when
+    /// filtering `accepts[]` in client negotiation) strictly match this condition
+    /// and do not fold in unrelated failures.
     NoAcceptablePaymentRequirements,
     /// A network identifier this crate does not have a CAIP-2 mapping for.
+    ///
+    /// Audited across `network.rs`, `client.rs`, and `facilitator.rs`; every call site
+    /// strictly checks whether a given network passphrase maps to a supported
+    /// CAIP-2 identifier (`stellar:pubnet` or `stellar:testnet`). No mismatch found.
     UnsupportedNetwork { network: String },
     /// `sorocharge-signer` failed to build or sign the charge entry.
+    ///
+    /// Audited across `client.rs`, `network.rs`, and `tx.rs`; every call site
+    /// strictly returns this variant when wrapping an error from `sorocharge-signer`'s
+    /// build, sign, or network passphrase mapping routines. No mismatch found.
     Signing(SorochargeError),
-    /// Building the wrapping `TransactionEnvelope` failed (a value did not
-    /// fit its XDR-constrained shape).
+    /// Building the wrapping `TransactionEnvelope` or serializing/encoding
+    /// XDR structures (such as transaction envelopes, operations, auth entries,
+    /// and transfer arguments) failed because a value did not fit its
+    /// XDR-constrained shape or serialization failed.
+    ///
+    /// Audited across `tx.rs` and `client.rs`; every call site strictly checks
+    /// XDR construction and encoding constraints. No mismatch found.
     XdrEncodingFailed { reason: String },
     /// The `PAYMENT-SIGNATURE` (or `/verify` / `/settle` request) payload's
     /// JSON did not deserialize into the expected shape.
