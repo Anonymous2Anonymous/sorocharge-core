@@ -101,6 +101,7 @@ pub(crate) struct MockRpc {
 
 /// What `getTransaction` should answer, for tests that need a result other
 /// than the default "method not implemented" error.
+#[allow(dead_code)]
 #[derive(Clone, Copy)]
 pub(crate) enum MockGetTransaction {
     /// A JSON-RPC error, as a transport/RPC failure produces.
@@ -149,6 +150,7 @@ impl MockRpc {
     }
 
     /// Controls how the next `getTransaction` call is answered.
+    #[allow(dead_code)]
     pub(crate) fn set_get_transaction(&self, outcome: MockGetTransaction) {
         *self
             .state

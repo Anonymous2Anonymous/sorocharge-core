@@ -316,9 +316,11 @@ pub fn verify_entry(
 ///
 /// # Errors
 ///
-/// Returns [`SorochargeError::InvalidSignature`] if the total valid
-/// signature weight is below the threshold, or if any individual signature
-/// verification fails.
+/// Returns [`SorochargeError::InvalidSignature`] if the summed weight of
+/// delegates whose signatures verify is below `threshold`. An individual
+/// signature that fails to verify, or a signer absent from
+/// `signers_with_weights`, is not itself an error — it simply contributes no
+/// weight, so the entry fails only if the remaining weight falls short.
 ///
 /// Returns [`SorochargeError::ExpiredEntry`] or
 /// [`SorochargeError::ExpirationExceedsAllowance`] for an entry that has
@@ -955,6 +957,26 @@ mod tests {
             let (signed, params) = build_signed_delegated(&delegates, &[0], 1_000, 1_000, NETWORK);
             let weights: Vec<(Address, u32)> =
                 delegates.iter().map(|(_, a)| (a.clone(), 1)).collect();
+
+            let result = verify_delegated_threshold(&signed, &params, 500, NETWORK, &weights, 2);
+            assert_eq!(result, Err(SorochargeError::InvalidSignature));
+        }
+
+        /// Pins the documented fold-in on `InvalidSignature`: every attached
+        /// signature here is genuine, but one signer is absent from the
+        /// weight list, so the weight that counts falls short of the
+        /// threshold — reported as `InvalidSignature`, not a distinct variant.
+        #[test]
+        fn rejects_genuine_signatures_whose_counted_weight_is_below_the_threshold() {
+            let delegates = [delegate(0x01), delegate(0x02)];
+            let (signed, params) =
+                build_signed_delegated(&delegates, &[0, 1], 1_000, 1_000, NETWORK);
+            assert_eq!(
+                verify_entry(&signed, &params, 500, NETWORK),
+                Ok(()),
+                "both signatures are genuine on their own"
+            );
+            let weights: Vec<(Address, u32)> = vec![(delegates[0].1.clone(), 1)];
 
             let result = verify_delegated_threshold(&signed, &params, 500, NETWORK, &weights, 2);
             assert_eq!(result, Err(SorochargeError::InvalidSignature));

@@ -732,13 +732,11 @@ mod tests {
     use chrono::Duration as ChronoDuration;
     use sorocharge_signer::{build_charge_entry, sign_entry, CredentialKind};
     use stellar_xdr::{
-        AccountId, ContractEvent, ContractEventBody, ContractEventType, ContractEventV0,
-        DiagnosticEvent, ExtensionPoint, Int128Parts, ScSymbol, ScVal, SequenceNumber,
-        SorobanTransactionData, TransactionV1Envelope, VecM, WriteXdr,
+        AccountId, SequenceNumber, SorobanTransactionData, TransactionV1Envelope, VecM, WriteXdr,
     };
 
     use crate::header::encode_base64url_jcs;
-    use crate::test_util::{MockGetTransaction, MockRpc, TestSigner};
+    use crate::test_util::{MockRpc, TestSigner};
     use crate::tx::{build_sponsored_envelope, build_unsponsored_transaction};
     use crate::types::{Challenge, MethodDetails};
 
